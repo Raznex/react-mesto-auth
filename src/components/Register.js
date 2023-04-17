@@ -1,11 +1,26 @@
 import React from "react";
+import {Link} from "react-router-dom";
 
-function Register() {
+
+function Register({onRegister}) {
+    const [formValue, setFormValue] = React.useState({});
+
+    function handleChange(e) {
+        const { name, value } = e.target;
+        setFormValue({ ...formValue, [name]: value });
+    };
+
+    function handleSubmit(e) {
+        e.preventDefault();
+        onRegister(formValue);
+    }
+
     return (
         <div className="register">
             <form
                 className="login__form"
                 noValidate
+                onSubmit={handleSubmit}
             >
                 <h2 className="login__title">Регистрация</h2>
                 <input
@@ -16,6 +31,8 @@ function Register() {
                     maxLength="30"
                     required
                     placeholder="Email"
+                    onChange={handleChange}
+                    value={formValue.email}
                 />
                 <input
                     type="text"
@@ -25,6 +42,8 @@ function Register() {
                     maxLength="40"
                     required
                     placeholder="Пароль"
+                    value={formValue.password}
+                    onChange={handleChange}
                 />
                 <button
                     type="submit"
@@ -33,7 +52,7 @@ function Register() {
                 >
                     Зарегистрироваться
                 </button>
-                <a href="#" className="register__have-login">Уже зарегистрированы? Войти</a>
+                <Link to="/sign-in" className="register__have-login">Уже зарегистрированы? Войти</Link>
             </form>
         </div>
     );

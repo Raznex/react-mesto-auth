@@ -15,7 +15,9 @@ import EditAvatarPopup from "./EditAvatarPopup.js";
 import AddPlacePopup from "./AddPlacePopup";
 import {Routes, Route} from "react-router-dom";
 import InfoToolTip from "./InfoToolTip.js";
-import { Navigate } from "react-router-dom";
+import {Navigate, useNavigate} from "react-router-dom";
+import * as auth from "../utils/Auth.js";
+import ProtectedRoute from "./ProtectedRoute.js";
 
 function App() {
 
@@ -26,7 +28,10 @@ function App() {
     const [currentUser, setCurrentUser] = React.useState({});
     const [cards, setCards] = React.useState([]);
     const [isLoading, setIsLoading] = React.useState(false);
+    const [loggedIn, setLoggedIn] = React.useState(false);
+    const [userData, setUserData] = React.useState('');
     const api = new Api(options)
+    const navigate = useNavigate()
 
     const isOpen = isEditAvatarPopupOpen || isEditProfilePopupOpen || isAddPlacePopupOpen || selectedCard.link
 
@@ -135,27 +140,94 @@ function App() {
         setSelectedCard({});
     }
 
+    const cbCheckToken = () => {
+        if (localStorage.getItem("jwt")) {
+            auth
+                .getToken(localStorage.getItem("jwt"))
+                .then((res) => {
+                    console.log(res);
+                    if (res) {
+                        setLoggedIn(true);
+                        setUserData(res.data.email);
+                        navigate("/", {replace: true});
+                    }
+                })
+                .catch((err) => console.log(err));
+        }
+    };
+    React.useEffect(() => {
+        cbCheckToken();
+    }, []);
+
+    function cbRegister(formValue) {
+        // setIsAuthLoading(true);
+        auth
+            .register(formValue.email, formValue.password)
+            .then((res) => {
+                if (res) {
+                    // handleNotification(true);
+                    navigate("/sign-in", {replace: true});
+                }
+            })
+            .catch((err) => {
+                // handleNotification(false);
+                console.log(err);
+                // handleErrorMessageNotification(err);
+            })
+        // .finally(() => setIsAuthLoading(false));
+    }
+
+    function cbLogin(formValue) {
+        // setIsAuthLoading(true);
+        Promise.all([
+            auth.getToken(localStorage.getItem("jwt")),
+            auth.authorize(formValue.password, formValue.email)
+        ])
+            .then(([data, res]) => {
+                if (data) {
+                    setUserData(data.data.email);
+                }
+                if (res.token) {
+                    console.log(res);
+                    setLoggedIn(true);
+                    navigate("/", {replace: true});
+                }
+            })
+            .catch((err) => {
+                // handleNotification(false);
+                console.log(err);
+                // handleErrorMessageNotification(err);
+            })
+        // .finally(() => setIsAuthLoading(false));
+    }
+
+    function cbLogout() {
+        setLoggedIn(false);
+        setUserData('')
+        localStorage.removeItem('jwt')
+    }
+
     return (
 
         <UserContext.Provider value={currentUser}>
             <div className="page">
                 <InfoToolTip/>
-                <Header/>
+                <Header email={userData} onLogout={cbLogout}/>
                 <Routes>
                     <Route
                         path="/"
-                        element={<Navigate to="/sign-in" replace/>
-                            // loggedIn ? (
-                            //     <Navigate to="/mesto-react" replace/>
-                            // ) : (
-                            //     <Navigate to="/sign-in" replace/>
-                            // )
-                        }
-                    />
+                        element={
+                            loggedIn ? (
+                                <Navigate to="/mesto-react" replace/>
+                            ) : (
+                                <Navigate to="/sign-in" replace/>
+                            )
+                        }/>
                     <Route
                         path="/mesto-react"
                         element={
-                            <Main
+                            <ProtectedRoute
+                                element={Main}
                                 cards={cards}
                                 onEditAvatar={() => setIsEditAvatarPopupOpen(true)}
                                 onEditProfile={() => setIsEditProfilePopupOpen(true)}
@@ -163,13 +235,14 @@ function App() {
                                 handleCardClick={() => setSelectedCard}
                                 handleCardLike={() => handleCardLike}
                                 handleDeleteClick={() => handleDeleteCard}
+                                loggedIn={loggedIn}
                             />
                         }
                     />
                     <Route
                         path="/sign-up"
                         element={
-                            <Register/>
+                            <Register onRegister={cbRegister}/>
                         }
                     />
                     <Route
