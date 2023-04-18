@@ -21,4 +21,4 @@
 
 ****
 
-* [Ссылка на GithubPages](https://raznex.github.io/mesto-react-auth/)
+* [Ссылка на GithubPages](https://raznex.github.io/react-mesto-auth/)
