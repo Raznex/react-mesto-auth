@@ -1,11 +1,33 @@
 import React from "react";
+import {Navigate} from "react-router-dom";
 
-function Login() {
+function Login({onLogin, isLogin, isLoading}) {
+
+    const [formValue, setFormValue] = React.useState({});
+
+    function handleChange(e) {
+        const { name, value } = e.target;
+        setFormValue({ ...formValue, [name]: value });
+    };
+
+    function handleSubmit(e) {
+        e.preventDefault();
+        if (!formValue.password || !formValue.email) {
+            return;
+        }
+        onLogin(formValue);
+    }
+
+    if (isLogin) {
+        return <Navigate to="/"/>
+    }
+
+
     return (
         <div className="login">
             <form
                 className="login__form"
-                noValidate
+                onSubmit={handleSubmit}
             >
                 <h2 className="login__title">Вход</h2>
                 <input
@@ -16,6 +38,9 @@ function Login() {
                     maxLength="30"
                     required
                     placeholder="Email"
+                    name="email"
+                    value={formValue.email}
+                    onChange={handleChange}
                 />
                 <input
                     type="text"
@@ -25,13 +50,16 @@ function Login() {
                     maxLength="40"
                     required
                     placeholder="Пароль"
+                    name="password"
+                    value={formValue.password}
+                    onChange={handleChange}
                 />
                 <button
                     type="submit"
                     className="login__submit"
                     name="submit"
                 >
-                    Войти
+                    {isLoading ? "Вход..." : "Войти"}
                 </button>
             </form>
         </div>

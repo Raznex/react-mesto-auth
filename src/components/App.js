@@ -18,12 +18,16 @@ import InfoToolTip from "./InfoToolTip.js";
 import {Navigate, useNavigate} from "react-router-dom";
 import * as auth from "../utils/Auth.js";
 import ProtectedRoute from "./ProtectedRoute.js";
+import InfoTooltip from "./InfoToolTip.js";
 
 function App() {
 
     const [isEditAvatarPopupOpen, setIsEditAvatarPopupOpen] = React.useState(false);
     const [isEditProfilePopupOpen, setIsEditProfilePopupOpen] = React.useState(false);
     const [isAddPlacePopupOpen, setIsAddPlacePopupOpen] = React.useState(false);
+    const [isSuccessPopupOpen, setIsSuccessPopupOpen] = React.useState(false);
+    const [isSuccess, setIsSuccess] = React.useState(true);
+    const [errorMessage, setErrorMessage] = React.useState("");
     const [selectedCard, setSelectedCard] = React.useState({});
     const [currentUser, setCurrentUser] = React.useState({});
     const [cards, setCards] = React.useState([]);
@@ -138,6 +142,15 @@ function App() {
         setIsEditProfilePopupOpen(false);
         setIsAddPlacePopupOpen(false);
         setSelectedCard({});
+        setIsSuccessPopupOpen(false)
+    }
+
+    function regSuccess(successed) {
+        setIsSuccessPopupOpen(true);
+        setIsSuccess(successed);
+    }
+    function regError(err) {
+        setErrorMessage(err);
     }
 
     const cbCheckToken = () => {
@@ -160,51 +173,57 @@ function App() {
     }, []);
 
     function cbRegister(formValue) {
-        // setIsAuthLoading(true);
+        setIsLoading(true);
         auth
             .register(formValue.email, formValue.password)
             .then((res) => {
                 if (res) {
-                    // handleNotification(true);
-                    navigate("/sign-in", {replace: true});
+                    regSuccess(true);
+                    navigate("/signin", {replace: true});
                 }
             })
             .catch((err) => {
-                // handleNotification(false);
+                regSuccess(false);
                 console.log(err);
-                // handleErrorMessageNotification(err);
+                regError(err);
             })
-        // .finally(() => setIsAuthLoading(false));
+            .finally(() => setIsLoading(false));
     }
 
     function cbLogin(formValue) {
-        // setIsAuthLoading(true);
-        Promise.all([
-            auth.getToken(localStorage.getItem("jwt")),
-            auth.authorize(formValue.password, formValue.email)
-        ])
-            .then(([data, res]) => {
+        setIsLoading(true);
+        auth.authorize(formValue.email, formValue.password)
+            .then((res) => {
+                if (res.token) {
+                    console.log(res);
+                    // Передаем токен в функцию makeRequest при вызове метода getToken
+                    return auth.getToken(res.token);
+                } else {
+                    throw new Error("Неверный формат ответа сервера");
+                }
+            })
+            .then((data) => {
                 if (data) {
                     setUserData(data.data.email);
                 }
-                if (res.token) {
-                    console.log(res);
-                    setLoggedIn(true);
-                    navigate("/", {replace: true});
-                }
+                setLoggedIn(true);
+                navigate("/", {replace: true});
             })
             .catch((err) => {
-                // handleNotification(false);
                 console.log(err);
-                // handleErrorMessageNotification(err);
+                // Обрабатываем ошибку авторизации
             })
-        // .finally(() => setIsAuthLoading(false));
+            .finally(() => setIsLoading(false));
     }
 
     function cbLogout() {
         setLoggedIn(false);
         setUserData('')
         localStorage.removeItem('jwt')
+    }
+
+    if(isLoading) {
+        return 'Loading...';
     }
 
     return (
@@ -220,7 +239,7 @@ function App() {
                             loggedIn ? (
                                 <Navigate to="/mesto-react" replace/>
                             ) : (
-                                <Navigate to="/sign-in" replace/>
+                                <Navigate to="/signin" replace/>
                             )
                         }/>
                     <Route
@@ -240,15 +259,15 @@ function App() {
                         }
                     />
                     <Route
-                        path="/sign-up"
+                        path="/signup"
                         element={
-                            <Register onRegister={cbRegister}/>
+                            <Register onRegister={cbRegister}  isLoading={isLoading} isLogin={loggedIn}/>
                         }
                     />
                     <Route
-                        path="/sign-in"
+                        path="/signin"
                         element={
-                            <Login/>
+                            <Login onLogin={cbLogin} isLoading={isLoading} isLogin={loggedIn}/>
                         }
                     />
                 </Routes>
@@ -273,6 +292,12 @@ function App() {
                                submitText='Да'
                 >
                 </PopupWithForm>
+                <InfoTooltip
+                    isOpen={isSuccessPopupOpen}
+                    onClose={closeAllPopups}
+                    isSuccess={isSuccess}
+                    errorMessage={errorMessage}
+                />
             </div>
         </UserContext.Provider>
 
