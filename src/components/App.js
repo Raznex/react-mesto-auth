@@ -18,7 +18,6 @@ import InfoToolTip from "./InfoToolTip.js";
 import {Navigate, useNavigate} from "react-router-dom";
 import * as auth from "../utils/Auth.js";
 import ProtectedRoute from "./ProtectedRoute.js";
-import InfoTooltip from "./InfoToolTip.js";
 
 function App() {
 
@@ -56,14 +55,15 @@ function App() {
 
 
     React.useEffect(() => {
-        Promise.all([api.getInfoProfile(), api.getInitialCards()]).then(
-            ([data, cards]) => {
-                setCurrentUser(data);
-                setCards(cards)
-            }
-        ).catch(console.log);
-        // eslint-disable-next-line
-    }, [])
+        if (loggedIn) {
+            Promise.all([api.getInfoProfile(), api.getInitialCards()])
+                .then(([data, cards]) => {
+                    setCurrentUser(data);
+                    setCards(cards);
+                })
+                .catch((err) => console.log(err));
+        }
+    }, [loggedIn]);
 
     function handleCardLike(card) {
         console.log(card)
@@ -172,20 +172,27 @@ function App() {
         cbCheckToken();
     }, []);
 
+
     function cbRegister(formValue) {
         setIsLoading(true);
         auth
             .register(formValue.email, formValue.password)
             .then((res) => {
-                if (res) {
+                if (res.error === 'Пользователь с таким email уже зарегистрирован') {
+                    regSuccess(false);
+                } else {
+                    console.log(res)
                     regSuccess(true);
-                    navigate("/signin", {replace: true});
+                    navigate("/signin", { replace: true });
                 }
             })
             .catch((err) => {
-                regSuccess(false);
-                console.log(err);
-                regError(err);
+                if (err.response && err.response.status === 400) {
+                    regSuccess(false);
+                    console.log("Error: Email already taken");
+                } else {
+                    regError(err);
+                }
             })
             .finally(() => setIsLoading(false));
     }
@@ -196,8 +203,6 @@ function App() {
             .then((res) => {
                 if (res.token) {
                     console.log(res);
-                    // Передаем токен в функцию makeRequest при вызове метода getToken
-                    return auth.getToken(res.token);
                 } else {
                     throw new Error("Неверный формат ответа сервера");
                 }
@@ -206,12 +211,12 @@ function App() {
                 if (data) {
                     setUserData(data.data.email);
                 }
+                console.log(userData)
                 setLoggedIn(true);
                 navigate("/", {replace: true});
             })
             .catch((err) => {
                 console.log(err);
-                // Обрабатываем ошибку авторизации
             })
             .finally(() => setIsLoading(false));
     }
@@ -220,10 +225,6 @@ function App() {
         setLoggedIn(false);
         setUserData('')
         localStorage.removeItem('jwt')
-    }
-
-    if(isLoading) {
-        return 'Loading...';
     }
 
     return (
@@ -237,13 +238,13 @@ function App() {
                         path="/"
                         element={
                             loggedIn ? (
-                                <Navigate to="/mesto-react" replace/>
+                                <Navigate to="/react-mesto-auth" replace/>
                             ) : (
                                 <Navigate to="/signin" replace/>
                             )
                         }/>
                     <Route
-                        path="/mesto-react"
+                        path="/react-mesto-auth"
                         element={
                             <ProtectedRoute
                                 element={Main}
@@ -292,7 +293,7 @@ function App() {
                                submitText='Да'
                 >
                 </PopupWithForm>
-                <InfoTooltip
+                <InfoToolTip
                     isOpen={isSuccessPopupOpen}
                     onClose={closeAllPopups}
                     isSuccess={isSuccess}

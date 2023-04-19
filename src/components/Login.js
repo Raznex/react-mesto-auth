@@ -43,7 +43,7 @@ function Login({onLogin, isLogin, isLoading}) {
                     onChange={handleChange}
                 />
                 <input
-                    type="text"
+                    type="password"
                     id="password-field"
                     className="login__field"
                     minLength="2"

@@ -39,7 +39,7 @@ return <Navigate to="/"/>
                     value={formValue.email}
                 />
                 <input
-                    type="text"
+                    type="password"
                     id="password-field"
                     className="login__field"
                     minLength="2"

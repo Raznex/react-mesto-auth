@@ -2,7 +2,7 @@ import React from "react";
 import successImage from "../images/Success.svg";
 import failImage from "../images/Fail.svg";
 
-function InfoTooltip({ isOpen, onClose, isSuccess, errorMessage }) {
+function InfoToolTip({ isOpen, onClose, isSuccess, errorMessage }) {
     return (
         <div
             className={`popup popup_type_info-notification ${isOpen && "popup_is-opened"}`}
@@ -40,4 +40,4 @@ function InfoTooltip({ isOpen, onClose, isSuccess, errorMessage }) {
     );
 }
 
-export default InfoTooltip;
+export default InfoToolTip;
