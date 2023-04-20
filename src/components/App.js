@@ -205,17 +205,12 @@ function App() {
             .then((res) => {
                 if (res.token) {
                     console.log(res);
+                    setLoggedIn(true);
+                    navigate("/", {replace: true});
+                    setUserData(formValue.email)
                 } else {
                     throw new Error("Неверный формат ответа сервера");
                 }
-            })
-            .then((data) => {
-                if (data) {
-                    setUserData(data.data.email);
-                }
-                setLoggedIn(true);
-                navigate("/", {replace: true});
-                cbCheckToken();
             })
             .catch((err) => {
                 console.log(err);
