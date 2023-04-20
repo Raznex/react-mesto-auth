@@ -149,6 +149,7 @@ function App() {
         setIsSuccessPopupOpen(true);
         setIsSuccess(successed);
     }
+
     function regError(err) {
         setErrorMessage(err);
     }
@@ -183,7 +184,7 @@ function App() {
                 } else {
                     console.log(res)
                     regSuccess(true);
-                    navigate("/signin", { replace: true });
+                    navigate("/signin", {replace: true});
                 }
             })
             .catch((err) => {
@@ -199,6 +200,7 @@ function App() {
 
     function cbLogin(formValue) {
         setIsLoading(true);
+
         auth.authorize(formValue.email, formValue.password)
             .then((res) => {
                 if (res.token) {
@@ -211,15 +213,37 @@ function App() {
                 if (data) {
                     setUserData(data.data.email);
                 }
-                console.log(userData)
                 setLoggedIn(true);
                 navigate("/", {replace: true});
+                cbCheckToken();
             })
             .catch((err) => {
                 console.log(err);
+                regSuccess(false);
             })
             .finally(() => setIsLoading(false));
     }
+
+
+    // async function cbLogin(formValue) {
+    //     setIsLoading(true);
+    //
+    //     auth.authorize(formValue.email, formValue.password)
+    //         .then((res) => {
+    //             if (res.data) {
+    //                 setUserData(res.data.email);
+    //             }
+    //             setLoggedIn(true);
+    //             navigate("/", {replace: true});
+    //             // cbCheckToken();
+    //         })
+    //         .catch((err) => {
+    //             console.log(err);
+    //             regSuccess(false);
+    //             regError(err)
+    //         })
+    //         .finally(() => setIsLoading(false));
+    // }
 
     function cbLogout() {
         setLoggedIn(false);
@@ -262,7 +286,7 @@ function App() {
                     <Route
                         path="/signup"
                         element={
-                            <Register onRegister={cbRegister}  isLoading={isLoading} isLogin={loggedIn}/>
+                            <Register onRegister={cbRegister} isLoading={isLoading} isLogin={loggedIn}/>
                         }
                     />
                     <Route

@@ -20,10 +20,6 @@ function makeRequest(url, method, body, token) {
         .then((res) => {return res.json()});
 }
 
-export const checkUserEmail = (email) => {
-    return makeRequest('/users/me', 'POST', {email})
-}
-
 export const register = (email, password) => {
     return makeRequest('/signup', 'POST', {email, password})
     };
