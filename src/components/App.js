@@ -219,27 +219,6 @@ function App() {
             .finally(() => setIsLoading(false));
     }
 
-
-    // async function cbLogin(formValue) {
-    //     setIsLoading(true);
-    //
-    //     auth.authorize(formValue.email, formValue.password)
-    //         .then((res) => {
-    //             if (res.data) {
-    //                 setUserData(res.data.email);
-    //             }
-    //             setLoggedIn(true);
-    //             navigate("/", {replace: true});
-    //             // cbCheckToken();
-    //         })
-    //         .catch((err) => {
-    //             console.log(err);
-    //             regSuccess(false);
-    //             regError(err)
-    //         })
-    //         .finally(() => setIsLoading(false));
-    // }
-
     function cbLogout() {
         setLoggedIn(false);
         setUserData('')
